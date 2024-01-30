@@ -1,0 +1,56 @@
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+class DioInterceptExample extends StatefulWidget {
+  @override
+  _DioInterceptExampleState createState() => _DioInterceptExampleState();
+}
+
+class _DioInterceptExampleState extends State<DioInterceptExample> {
+  Dio dio = Dio();
+
+  @override
+  void initState() {
+    super.initState();
+    setupInterceptors();
+    fetchUsers();
+  }
+
+  void setupInterceptors() {
+    dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) {
+        // Perform tasks before sending the request
+        print('Sending request to: ${options.uri}');
+        handler.next(options);
+      },
+      onResponse: (response, handler) {
+        // Perform tasks on successful response
+        print('Received response with status: ${response.statusCode}');
+        handler.next(response);
+      },
+      onError: (error, handler) {
+        // Handle errors
+        print('Error occurred: $error');
+        handler.next(error);
+      },
+    ));
+  }
+
+  Future<void> fetchUsers() async {
+    try {
+      Response response =
+          await dio.get('https://jsonplaceholder.typicode.com/users');
+      List<dynamic> jsonData = response.data;
+      print('Users: $jsonData');
+    } catch (e) {
+      print('Error fetching users: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Dio Interceptor Example')),
+      body: Center(child: Text('Check the console for logs')),
+    );
+  }
+}
